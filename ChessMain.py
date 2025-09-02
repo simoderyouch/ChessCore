@@ -38,52 +38,87 @@ def main():
     player_clicks = []
     valid_moves_from_selected = []  # Store valid moves from currently selected square
 
+
     while running:
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
 
-            # mouse handlers
+                # mouse handlers
             elif e.type == p.MOUSEBUTTONDOWN:
-                location = p.mouse.get_pos()  # (x, y) location of mouse
+                location = p.mouse.get_pos()
                 col = location[0] // SQ_SIZE
                 row = location[1] // SQ_SIZE
 
+                # --- Case 1: clicked same square → deselect
                 if sq_selected == (row, col):
                     sq_selected = ()
                     player_clicks = []
                     valid_moves_from_selected = []
-                else:
-                    sq_selected = (row, col)
-                    player_clicks.append(sq_selected)
 
-                    if len(player_clicks) == 1:
-                        valid_moves_from_selected = []
-                        piece = gs.board[row][col]
-                        if piece != "--":
-                            piece_color = piece[0]  # 'w' or 'b'
-                            if (piece_color == 'w' and gs.whiteToMove) or (piece_color == 'b' and not gs.whiteToMove):
-                                for move in valid_moves:
-                                    if move.startRow == row and move.startCol == col:
-                                        valid_moves_from_selected.append(move)
 
-                if len(player_clicks) == 2:
-                    move = ChessEngine.Move(player_clicks[0], player_clicks[1], gs.board)
-
-                    # Only process move if there's a piece to move
-                    if move.pieceMoved != "--":
-                        print(move.get_chess_notation())
-
-                        if move in valid_moves:
-                            gs.make_move(move)
-                            move_made = True
+                # --- Case 2: first click (must be your own piece)
+                elif not player_clicks:
+                    piece = gs.board[row][col]
+                    if piece != "--":
+                        piece_color = piece[0]
+                        if (piece_color == 'w' and gs.whiteToMove) or (piece_color == 'b' and not gs.whiteToMove):
+                            sq_selected = (row, col)
+                            player_clicks = [sq_selected]
+                            # collect valid moves for highlighting
+                            valid_moves_from_selected = [
+                                mv for mv in valid_moves if mv.startRow == row and mv.startCol == col
+                            ]
                         else:
-                            print("Invalid move!")
+                            # clicked opponent piece -> ignore (no selection)
+                            sq_selected = ()
+                            player_clicks = []
+                            valid_moves_from_selected = []
+                    else:
+                        # clicked empty square -> ignore
+                        sq_selected = ()
+                        player_clicks = []
+                        valid_moves_from_selected = []
 
-                    # Reset selections
-                    sq_selected = ()
-                    player_clicks = []
-                    valid_moves_from_selected = []
+
+
+                # --- Case 3: second click → destination
+                else:
+                    dest = (row, col)
+                    attempted_move = ChessEngine.Move(player_clicks[0], dest, gs.board)
+
+                    # If move is legal -> make it
+                    if attempted_move in valid_moves:
+                        gs.make_move(attempted_move)
+                        print(attempted_move.get_chess_notation())
+                        move_made = True
+
+                        sq_selected = ()
+                        player_clicks = []
+                        valid_moves_from_selected = []
+
+                    # Move invalid -> check if clicked your own piece to switch selection
+                    else:
+                        clicked_piece = gs.board[row][col]
+                        if clicked_piece != "--":
+                            clicked_color = clicked_piece[0]
+                            # If clicked one of your pieces, switch selection to that new piece
+                            if (clicked_color == 'w' and gs.whiteToMove) or (
+                                    clicked_color == 'b' and not gs.whiteToMove):
+                                sq_selected = (row, col)
+                                player_clicks = [sq_selected]
+                                valid_moves_from_selected = [
+                                    mv for mv in valid_moves if mv.startRow == row and mv.startCol == col
+                                ]
+                            else:
+                                sq_selected = ()
+                                player_clicks = []
+                                valid_moves_from_selected = []
+                        else:
+                            sq_selected = ()
+                            player_clicks = []
+                            valid_moves_from_selected = []
+
 
             # key handlers
             elif e.type == p.KEYDOWN:

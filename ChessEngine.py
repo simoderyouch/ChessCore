@@ -203,13 +203,12 @@ class Move:
 
     def get_chess_notation(self):
         """Convert move to chess notation"""
-        piece = self.pieceMoved[1]  # second char = piece type (p, R, N, B, Q, K)
+        piece = self.pieceMoved[1]
         dest_square = self.get_rank_file(self.endRow, self.endCol)
 
         # Pawn moves
         if piece == "p":
             if self.pieceCaptured != "--":
-                # Show capture with file of pawn
                 return self.colsToFiles[self.startCol] + "x" + dest_square
             else:
                 return dest_square
