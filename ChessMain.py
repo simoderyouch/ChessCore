@@ -90,8 +90,11 @@ def main():
                     # If move is legal -> make it
                     if attempted_move in valid_moves:
                         gs.make_move(attempted_move)
-                        print(attempted_move.get_chess_notation())
+                        print('MOVE NOTATION : ' , attempted_move.get_chess_move_notation())
+                        print('CHESS NOTATION : ', attempted_move.get_chess_notation())
+                        print('----------------------------------------------------------')
                         move_made = True
+
 
                         sq_selected = ()
                         player_clicks = []
@@ -132,6 +135,10 @@ def main():
         if move_made:
             valid_moves = gs.get_valid_moves()
             move_made = False
+
+
+
+
 
         draw_game_state(screen, gs, valid_moves_from_selected, sq_selected)
         clock.tick(MAX_FPS)
