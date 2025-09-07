@@ -96,27 +96,22 @@ class GameState:
                 moves = self.get_all_possible_moves()
 
                 check = self.checks[0]
-
                 checkRow = check[0]
                 checkCol = check[1]
-                pieceChecking = self.board[checkRow][checkCol][1]
-
+                pieceChecking = self.board[checkRow][checkCol]
 
                 validSquares = []
 
-                if pieceChecking == 'N':
+                if pieceChecking[1] == 'N':
                     validSquares = [(checkRow, checkCol)]
                 else :
-
                     for i in range( 1 , 8 ) :
                         validSquare = ( kingRow + check[2] * i , kingCol + check[3] * i )
                         validSquares.append( validSquare )
-
-
                         if validSquare[0] == checkRow  and validSquare[1] == checkCol :
                             break
 
-                for i in range( len(moves) -1 , -1 , -1) :
+                for i in range( len(moves) - 1  , -1 , -1) :
                     if moves[i].pieceMoved[1] != 'K' :
                         if not ( moves[i].endRow , moves[i].endCol ) in validSquares :
                             moves.remove(moves[i])
@@ -127,21 +122,16 @@ class GameState:
         else :
             moves = self.get_all_possible_moves()
 
+
         if len(moves) == 0 :
-            if self.in_check() :
+            if self.inCheck:
                 self.checkMate = True
             else :
                 self.staleMate = True
-
         else :
 
             self.checkMate = False
             self.staleMate = False
-
-        if self.checkMate:
-            print("Checkmate")
-        if self.staleMate:
-            print("Stalemate")
 
         return moves
 
@@ -218,11 +208,13 @@ class GameState:
                     # for knights, direction is just the knight offset (not used for blocking)
                     checks.append((endRow, endCol, m[0], m[1]))
 
+
         return inCheck, pins, checks
 
 
 
-    # Naive Algorithm to get valid moves and Checks
+    # Naive Algorithm to get valid moves and Checks - Old version juste i keep it here
+    '''
     def get_valid_moves_naive(self):
         """All moves considering checks"""
         # 1. generate all possible moves
@@ -266,11 +258,8 @@ class GameState:
             if move.endRow == r and move.endCol == c :
                 return True
         return False
-
-
-
-
-
+    
+    '''
 
 
     def get_all_possible_moves(self):
@@ -343,6 +332,8 @@ class GameState:
                     if not piecePinned or pinDirection == (1, 1):
                         moves.append(Move((r, c), (r+1, c+1), self.board))
 
+
+
     def get_rook_moves(self, r, c, moves):
         """Get all rook moves from position (r, c)"""
 
@@ -383,6 +374,7 @@ class GameState:
                 else:
                     break  # Off board
 
+
     def get_knight_moves(self, r, c, moves):
         """Get all knight moves from position (r, c)"""
 
@@ -417,7 +409,8 @@ class GameState:
             if self.pins[i][0] == r and self.pins[i][1] == c:
                 piecePinned = True
                 pinDirection = (self.pins[i][2] , self.pins[i][3])
-                self.pins.remove(self.pins[i])
+                if self.board[r][c][1] != "Q":
+                    self.pins.remove(self.pins[i])
                 break
 
 
@@ -452,7 +445,7 @@ class GameState:
     def get_king_moves(self, r, c, moves):
         """Get all king moves from position (r, c)"""
         king_moves = [(-1, -1), (-1, 0), (-1, 1), (0, -1),
-                     (0, 1), (1, -1), (1, 0), (1, 1)]
+                      (0, 1), (1, -1), (1, 0), (1, 1)]
         ally_color = 'w' if self.whiteToMove else 'b'
 
         for dr, dc in king_moves:
@@ -461,32 +454,35 @@ class GameState:
 
             if 0 <= end_row < 8 and 0 <= end_col < 8:
                 end_piece = self.board[end_row][end_col]
-                if end_piece[0] != ally_color:  # Not own piece
+                if end_piece[0] != ally_color:
 
-                    if ally_color == 'w' :
+                    original_piece = self.board[end_row][end_col]
+                    original_king_piece = self.board[r][c]
+
+                    self.board[end_row][end_col] = original_king_piece
+                    self.board[r][c] = "--"
+
+                    # Temporarily move king to test square
+                    if ally_color == 'w':
+                        original_king_pos = self.whiteKingLocation
                         self.whiteKingLocation = (end_row, end_col)
-                    else :
+                    else:
+                        original_king_pos = self.blackKingLocation
                         self.blackKingLocation = (end_row, end_col)
 
-                    inCheck , pins , checks = self.check_for_pins_and_checks()
+                        # Now check for threats
+                    inCheck, pins, checks = self.check_for_pins_and_checks()
 
-                    if not inCheck :
-                         moves.append(Move((r, c), (end_row, end_col), self.board))
+                    self.board[r][c] = original_king_piece
+                    self.board[end_row][end_col] = original_piece
 
                     if ally_color == 'w':
-                        self.whiteKingLocation = (r, c)
+                        self.whiteKingLocation = original_king_pos
                     else:
-                        self.blackKingLocation = (r, c)
+                        self.blackKingLocation = original_king_pos
 
-
-
-
-
-
-
-
-
-
+                    if not inCheck:
+                        moves.append(Move((r, c), (end_row, end_col), self.board))
 
 
 class Move:

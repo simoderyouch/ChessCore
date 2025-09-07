@@ -134,15 +134,33 @@ def main():
 
         if move_made:
             valid_moves = gs.get_valid_moves()
+            print("Legal moves:", " ".join(move.get_chess_move_notation() for move in valid_moves))
+
+
             move_made = False
 
 
-
-
-
         draw_game_state(screen, gs, valid_moves_from_selected, sq_selected)
+        if gs.checkMate:
+            if gs.whiteToMove:
+                drawEndGameText(screen, "Black wins by Checkmate!")
+            else:
+                drawEndGameText(screen, "White wins by Checkmate!")
+
+        elif gs.staleMate:
+            drawEndGameText(screen, "Stalemate - Draw")
         clock.tick(MAX_FPS)
         p.display.flip()
+
+
+def drawEndGameText(screen, text):
+    font = p.font.SysFont("Helvitca", 36, True, False)
+    text_object = font.render(text, 0, p.Color("Black"))
+    text_location = p.Rect(0, 0, WIDTH, HEIGHT).move(
+        WIDTH // 2 - text_object.get_width() // 2,
+        HEIGHT // 2 - text_object.get_height() // 2
+    )
+    screen.blit(text_object, text_location)
 
 def draw_game_state(screen, gs, valid_moves_from_selected, sq_selected):
     """Responsible for all the graphics within a current game state"""
