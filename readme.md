@@ -74,3 +74,4 @@
 - **Database (planned):** SQLite (game storage)
 - **Web (planned):** Flask or FastAPI
 - **Testing (planned):** pytest
+

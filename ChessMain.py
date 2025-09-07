@@ -5,7 +5,7 @@ import pygame as p
 from Chess import ChessEngine
 import os
 
-WIDTH = HEIGHT = 500
+WIDTH = HEIGHT = 700
 DIMENSION = 8
 SQ_SIZE = HEIGHT // DIMENSION
 MAX_FPS = 15
@@ -17,8 +17,11 @@ def load_images():
     pieces = ["wp", "wR", "wN", "wB", "wQ", "wK",
               "bp", "bR", "bN", "bB", "bQ", "bK"]
     for piece in pieces:
-        path = os.path.join(BASE_DIR, "images", piece + ".png")
+        path = os.path.join(BASE_DIR, "pieces/classic", piece.lower() + ".png")
         IMAGES[piece] = p.transform.scale(p.image.load(path), (SQ_SIZE, SQ_SIZE))
+
+
+
 
 def main():
     """Main driver for our code. This will handle user input and updating the graphics"""
@@ -87,18 +90,30 @@ def main():
                     dest = (row, col)
                     attempted_move = ChessEngine.Move(player_clicks[0], dest, gs.board)
 
-                    # If move is legal -> make it
-                    if attempted_move in valid_moves:
-                        gs.make_move(attempted_move)
-                        print('MOVE NOTATION : ' , attempted_move.get_chess_move_notation())
-                        print('CHESS NOTATION : ', attempted_move.get_chess_notation())
-                        print('----------------------------------------------------------')
-                        move_made = True
+                    for move in valid_moves_from_selected:
+                        if attempted_move == move:
+                            if move.isPawnPromotion:
+                                is_white_pawn = move.pieceMoved[0] == 'w'
+                                chosen_piece = show_promotion_dialog(screen, is_white_pawn)
+                                promotion_move = ChessEngine.Move(
+                                    player_clicks[0], dest, gs.board,
+                                    promotionPiece=chosen_piece
+                                )
+                                gs.make_move(promotion_move)
+                                print('PROMOTION MOVE:', promotion_move.get_chess_move_notation())
+                                print('CHESS NOTATION:', promotion_move.get_chess_notation())
+                            else:
+                                gs.make_move(move)
+                                print('MOVE NOTATION:', move.get_chess_move_notation())
+                                print('CHESS NOTATION:', move.get_chess_notation())
 
+                            print('----------------------------------------------------------')
+                            move_made = True
+                            sq_selected = ()
+                            player_clicks = []
+                            valid_moves_from_selected = []
+                            break  # important: stop after making a move
 
-                        sq_selected = ()
-                        player_clicks = []
-                        valid_moves_from_selected = []
 
                     # Move invalid -> check if clicked your own piece to switch selection
                     else:
@@ -154,13 +169,19 @@ def main():
 
 
 def drawEndGameText(screen, text):
-    font = p.font.SysFont("Helvitca", 36, True, False)
-    text_object = font.render(text, 0, p.Color("Black"))
+    overlay = p.Surface((WIDTH, HEIGHT))
+    overlay.set_alpha(180)
+    overlay.fill(p.Color("Black"))
+    screen.blit(overlay, (0, 0))
+
+    font = p.font.SysFont("Helvetica", 30, True, False)
+    text_object = font.render(text, True, p.Color("White"))
     text_location = p.Rect(0, 0, WIDTH, HEIGHT).move(
         WIDTH // 2 - text_object.get_width() // 2,
         HEIGHT // 2 - text_object.get_height() // 2
     )
     screen.blit(text_object, text_location)
+
 
 def draw_game_state(screen, gs, valid_moves_from_selected, sq_selected):
     """Responsible for all the graphics within a current game state"""
@@ -205,7 +226,68 @@ def draw_pieces(screen, board):
             if piece != "--":  # not empty square
                 screen.blit(IMAGES[piece], p.Rect(c * SQ_SIZE, r * SQ_SIZE, SQ_SIZE, SQ_SIZE))
 
+def show_promotion_dialog(screen, is_white_pawn):
+    """Show promotion dialog and return selected piece"""
+    overlay = p.Surface((WIDTH, HEIGHT))
+    overlay.set_alpha(128)
+    overlay.fill(p.Color("black"))
+    screen.blit(overlay, (0, 0))
 
+    # Define promotion pieces
+    promotion_pieces = ['Q', 'R', 'B', 'N']
+    piece_color = 'w' if is_white_pawn else 'b'
+
+    # Calculate dialog position (center of screen)
+    dialog_width = 4 * SQ_SIZE
+    dialog_height = (2 * SQ_SIZE) - 11
+    dialog_x = (WIDTH - dialog_width) // 2
+    dialog_y = (HEIGHT - dialog_height) // 2
+
+    # Draw dialog background
+    dialog_rect = p.Rect(dialog_x, dialog_y, dialog_width, dialog_height)
+    p.draw.rect(screen, p.Color("white"), dialog_rect)
+    #p.draw.rect(screen, p.Color("black"), dialog_rect, 3)
+
+    font_size = max(16, SQ_SIZE // 4)
+    font = p.font.SysFont("Arial", font_size, True)
+    title_text = font.render("Choose Promotion Piece:", True, p.Color("black"))
+    title_rect = title_text.get_rect(center=(WIDTH // 2, dialog_y + 30))
+    screen.blit(title_text, title_rect)
+
+    piece_rects = []
+    for i, piece in enumerate(promotion_pieces):
+        piece_image = IMAGES[piece_color + piece]
+        piece_x = dialog_x + i * SQ_SIZE
+        piece_y = ( dialog_y + SQ_SIZE // 2  ) + 19
+        piece_rect = p.Rect(piece_x, piece_y, SQ_SIZE, SQ_SIZE)
+        piece_rects.append((piece_rect, piece))
+
+        # Draw piece
+        screen.blit(piece_image, piece_rect)
+
+        p.draw.rect(screen, p.Color("gray"), piece_rect, 2)
+
+    p.display.flip()
+
+    while True:
+        for event in p.event.get():
+            if event.type == p.QUIT:
+                p.quit()
+                exit()
+            elif event.type == p.MOUSEBUTTONDOWN:
+                mouse_pos = p.mouse.get_pos()
+                for piece_rect, piece in piece_rects:
+                    if piece_rect.collidepoint(mouse_pos):
+                        return piece
+            elif event.type == p.KEYDOWN:
+                if event.key == p.K_q:
+                    return 'Q'
+                elif event.key == p.K_r:
+                    return 'R'
+                elif event.key == p.K_b:
+                    return 'B'
+                elif event.key == p.K_n:
+                    return 'N'
 
 if __name__ == "__main__":
     main()
