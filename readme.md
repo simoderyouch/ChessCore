@@ -41,7 +41,7 @@
 ## 🗺️ Roadmap
 
 ### Phase 1: Enhanced Game Features ⏳
-- [ ] **Special Moves:** Castling (both sides), En Passant, Promotion UI
+- [x] **Special Moves:** Castling (both sides), En Passant, Promotion UI
 - [ ] **Game State:** Check, Checkmate, Stalemate, Draw (50-move, repetition)
 - [ ] **UI:** Move history panel, captured pieces, game clock, SFX
 
