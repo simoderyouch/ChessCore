@@ -40,6 +40,13 @@ class GameState:
         self.whiteToMove = True
         self.moveLog = []
 
+        self.halfmoveClock = 0  # For 50-move rule
+        self.positionCounts = {}  # For threefold repetition
+        self.drawBy50Move = False
+        self.drawByRepetition = False
+
+        self.update_position_count()
+
     def make_move(self, move):
         """Takes a Move as parameter and executes it"""
         self.board[move.startRow][move.startCol] = "--"
@@ -82,6 +89,14 @@ class GameState:
         # Update castling rights - whenever a rook or king moves
         self.update_castle_rights(move)
         self.castleRightsLog.append(CastleRights(self.currentCastlingRights.wks, self.currentCastlingRights.bks,self.currentCastlingRights.wqs, self.currentCastlingRights.bqs))
+
+        # 50-move rule: reset on pawn move or capture
+        if move.pieceMoved[1] == 'p' or move.pieceCaptured != '--':
+            self.halfmoveClock = 0
+        else:
+            self.halfmoveClock += 1
+
+        self.update_position_count()
 
     def undo_move(self):
         """Undo the last move made"""
@@ -126,6 +141,46 @@ class GameState:
                 self.currentCastlingRights = self.castleRightsLog[-1]
             else:
                 self.currentCastlingRights = CastleRights(True, True, True, True)
+
+        # Undo halfmove clock
+        if self.moveLog:
+            last_move = self.moveLog[-1]
+            if last_move.pieceMoved[1] == 'p' or last_move.pieceCaptured != '--':
+                self.halfmoveClock = 0
+            else:
+                self.halfmoveClock -= 1
+        else:
+            self.halfmoveClock = 0
+        # Undo position count
+        fen = self.get_fen()
+        if fen in self.positionCounts:
+            self.positionCounts[fen] -= 1
+
+    def update_position_count(self):
+        fen = self.get_fen()
+        self.positionCounts[fen] = self.positionCounts.get(fen, 0) + 1
+
+    def get_fen(self):
+        # Generate a FEN-like string for repetition detection
+        board_str = '/'.join([''.join(row) for row in self.board])
+        turn = 'w' if self.whiteToMove else 'b'
+        castling = f"{int(self.currentCastlingRights.wks)}{int(self.currentCastlingRights.wqs)}{int(self.currentCastlingRights.bks)}{int(self.currentCastlingRights.bqs)}"
+        ep = str(self.enpassantPossible)
+        return f"{board_str} {turn} {castling} {ep}"
+
+    def is_draw(self):
+        # 50-move rule
+        if self.halfmoveClock >= 100:
+            self.drawBy50Move = True
+            return True
+        # Threefold repetition
+        fen = self.get_fen()
+        if self.positionCounts.get(fen, 0) >= 3:
+            self.drawByRepetition = True
+            return True
+        self.drawBy50Move = False
+        self.drawByRepetition = False
+        return False
 
     def get_valid_moves(self):
         """All moves considering checks"""
@@ -177,9 +232,14 @@ class GameState:
                 self.checkMate = True
             else:
                 self.staleMate = True
+
+            print('PGN of the game:')
+            print(self.get_pgn())
         else:
             self.checkMate = False
             self.staleMate = False
+
+        self.is_draw()
 
         return moves
 
@@ -541,6 +601,41 @@ class GameState:
                     self.currentCastlingRights.bqs = False
                 elif move.endCol == 7:
                     self.currentCastlingRights.bks = False
+
+
+    def get_pgn(self):
+        """Return the PGN string for the current game"""
+        # Basic headers
+        from datetime import datetime
+        headers = [
+            '[Event "Casual Game"]',
+            '[Site "Local"]',
+            f'[Date "{datetime.now().strftime("%Y.%m.%d")}"]',
+            '[Round "-"]',
+            '[White "White"]',
+            '[Black "Black"]',
+            '[Result "' + self.get_result() + '"]'
+        ]
+        pgn_moves = []
+        move_number = 1
+        for i, move in enumerate(self.moveLog):
+            notation = move.get_chess_notation()
+            if i % 2 == 0:
+                pgn_moves.append(f"{move_number}. {notation}")
+            else:
+                pgn_moves[-1] += f" {notation}"
+                move_number += 1
+        pgn_str = '\n'.join(headers) + '\n\n' + ' '.join(pgn_moves) + f' {self.get_result()}'
+        return pgn_str
+
+    def get_result(self):
+        """Return the PGN result string"""
+        if self.checkMate:
+            return "1-0" if not self.whiteToMove else "0-1"
+        elif self.staleMate or self.drawBy50Move or self.drawByRepetition:
+            return "1/2-1/2"
+        else:
+            return "*"
 
 
 class CastleRights():

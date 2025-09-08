@@ -171,6 +171,7 @@ def main():
 
         draw_game_state(screen, gs, valid_moves_from_selected, sq_selected, last_move)
 
+
         if gs.checkMate:
             if gs.whiteToMove:
                 drawEndGameText(screen, "Black wins by Checkmate!")
@@ -178,6 +179,10 @@ def main():
                 drawEndGameText(screen, "White wins by Checkmate!")
         elif gs.staleMate:
             drawEndGameText(screen, "Stalemate - Draw")
+        elif gs.drawBy50Move:
+            drawEndGameText(screen, "Draw by 50-move rule")
+        elif gs.drawByRepetition:
+            drawEndGameText(screen, "Draw by threefold repetition")
 
         clock.tick(MAX_FPS)
         p.display.flip()
@@ -194,6 +199,7 @@ def drawEndGameText(screen, text):
         WIDTH // 2 - text_object.get_width() // 2,
         HEIGHT // 2 - text_object.get_height() // 2
     )
+
     screen.blit(text_object, text_location)
 
 def draw_game_state(screen, gs, valid_moves_from_selected, sq_selected, last_move=None):
