@@ -42,7 +42,7 @@
 
 ### Phase 1: Enhanced Game Features ⏳
 - [x] **Special Moves:** Castling (both sides), En Passant, Promotion UI
-- [ ] **Game State:** Check, Checkmate, Stalemate, Draw (50-move, repetition)
+- [x] **Game State:** Check, Checkmate, Stalemate, Draw (50-move, repetition)
 - [ ] **UI:** Move history panel, captured pieces, game clock, SFX
 
 ### Phase 2: Traditional AI Engine 🤖

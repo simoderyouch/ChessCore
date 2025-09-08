@@ -11,7 +11,7 @@ SQ_SIZE = HEIGHT // DIMENSION
 MAX_FPS = 15
 IMAGES = {}
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-colors = [p.Color("white"), p.Color("gray")]
+colors = [p.Color(181, 136, 99), p.Color(240, 217, 181)]
 
 
 def load_images():
@@ -19,7 +19,7 @@ def load_images():
     pieces = ["wp", "wR", "wN", "wB", "wQ", "wK",
               "bp", "bR", "bN", "bB", "bQ", "bK"]
     for piece in pieces:
-        path = os.path.join(BASE_DIR, "pieces/classic", piece.lower() + ".png")
+        path = os.path.join(BASE_DIR, "pieces/neo", piece.lower() + ".png")
         IMAGES[piece] = p.transform.scale(p.image.load(path), (SQ_SIZE, SQ_SIZE))
 
 def main():
@@ -68,17 +68,14 @@ def main():
                         if (piece_color == 'w' and gs.whiteToMove) or (piece_color == 'b' and not gs.whiteToMove):
                             sq_selected = (row, col)
                             player_clicks = [sq_selected]
-                            # collect valid moves for highlighting
                             valid_moves_from_selected = [
                                 mv for mv in valid_moves if mv.startRow == row and mv.startCol == col
                             ]
                         else:
-                            # clicked opponent piece -> ignore (no selection)
                             sq_selected = ()
                             player_clicks = []
                             valid_moves_from_selected = []
                     else:
-                        # clicked empty square -> ignore
                         sq_selected = ()
                         player_clicks = []
                         valid_moves_from_selected = []
@@ -98,7 +95,7 @@ def main():
                                     promotionPiece=chosen_piece
                                 )
                                 gs.make_move(promotion_move)
-                                last_move = promotion_move  # Store for highlighting
+                                last_move = promotion_move
                                 print('PROMOTION MOVE:', promotion_move.get_chess_move_notation())
                                 print('CHESS NOTATION:', promotion_move.get_chess_notation())
                             else:
@@ -109,18 +106,16 @@ def main():
 
                             print('----------------------------------------------------------')
                             move_made = True
-                            animate = True
+                            animate = False
                             sq_selected = ()
                             player_clicks = []
                             valid_moves_from_selected = []
-                            break  # important: stop after making a move
+                            break
 
-                    # Move invalid -> check if clicked your own piece to switch selection
                     else:
                         clicked_piece = gs.board[row][col]
                         if clicked_piece != "--":
                             clicked_color = clicked_piece[0]
-                            # If clicked one of your pieces, switch selection to that new piece
                             if (clicked_color == 'w' and gs.whiteToMove) or (
                                     clicked_color == 'b' and not gs.whiteToMove):
                                 sq_selected = (row, col)
@@ -137,7 +132,6 @@ def main():
                             player_clicks = []
                             valid_moves_from_selected = []
 
-            # key handlers
             elif e.type == p.KEYDOWN:
                 if e.key == p.K_z:
                     gs.undo_move()
@@ -146,7 +140,7 @@ def main():
                     sq_selected = ()
                     player_clicks = []
                     valid_moves_from_selected = []
-                    # Clear last move on undo
+
                     if len(gs.moveLog) > 0:
                         last_move = gs.moveLog[-1]
                     else:
@@ -251,16 +245,13 @@ def highlight_squares(screen, gs, valid_moves_from_selected, sq_selected, last_m
 
 def highlight_last_move(screen, last_move):
     """Highlight the last move made with subtle coloring"""
-    # Light yellow/green tint for last move
-    color = p.Color(255, 255, 153, 80)  # Light yellow with transparency
-
-    # Highlight start square
+    color = p.Color(255, 255, 100, 250)
+    #
     s = p.Surface((SQ_SIZE, SQ_SIZE))
     s.set_alpha(80)
     s.fill(color)
     screen.blit(s, (last_move.startCol * SQ_SIZE, last_move.startRow * SQ_SIZE))
 
-    # Highlight end square
     screen.blit(s, (last_move.endCol * SQ_SIZE, last_move.endRow * SQ_SIZE))
 
 def highlight_selected_square(screen, r, c):
@@ -268,7 +259,7 @@ def highlight_selected_square(screen, r, c):
     border_color = p.Color(247, 247, 105, 120)
     border_width = 2
 
-    # Draw border around selected square
+
     rect = p.Rect(c * SQ_SIZE, r * SQ_SIZE, SQ_SIZE, SQ_SIZE)
     p.draw.rect(screen, border_color, rect, border_width)
 
@@ -283,56 +274,52 @@ def highlight_valid_moves(screen, gs, valid_moves):
         end_r, end_c = move.endRow, move.endCol
         target_piece = gs.board[end_r][end_c]
 
-        # Calculate center of the square
+
         center_x = end_c * SQ_SIZE + SQ_SIZE // 2
         center_y = end_r * SQ_SIZE + SQ_SIZE // 2
 
         if target_piece == "--":
-            # Empty square - draw a semi-transparent dot
+
             if move.isCastleMove:
-                # Castle moves get a special indicator
+
                 draw_castle_indicator(screen, center_x, center_y)
             else:
-                # Regular move - small dot
+
                 draw_move_dot(screen, center_x, center_y)
         else:
-            # Capture move - draw a ring around the piece
+
             draw_capture_ring(screen, center_x, center_y)
 
 def draw_move_dot(screen, center_x, center_y):
     """Draw a small dot for regular moves"""
-    dot_color = p.Color(128, 128, 128, 180)  # Semi-transparent green
-    dot_radius = SQ_SIZE // 7  # Small dot
+    dot_color = p.Color(0, 0, 0, 70)
+    dot_radius = SQ_SIZE // 5
 
-    # Create a surface for the dot with alpha
     dot_surface = p.Surface((dot_radius * 2, dot_radius * 2), p.SRCALPHA)
     p.draw.circle(dot_surface, dot_color, (dot_radius, dot_radius), dot_radius)
 
-    # Blit the dot at the center of the square
+
     screen.blit(dot_surface, (center_x - dot_radius, center_y - dot_radius))
 
 def draw_capture_ring(screen, center_x, center_y):
     """Draw a ring around capturable pieces"""
-    ring_color = p.Color(128, 128, 128, 180)  # Semi-transparent green
+    ring_color = p.Color(0, 0, 0, 70)
     outer_radius = SQ_SIZE // 2 - 3
     inner_radius = SQ_SIZE // 2 - 8
 
-    # Create a surface for the ring
     ring_surface = p.Surface((SQ_SIZE, SQ_SIZE), p.SRCALPHA)
 
-    # Draw outer circle
-    p.draw.circle(ring_surface, ring_color, (SQ_SIZE // 2, SQ_SIZE // 2), outer_radius)
-    # Draw inner circle (transparent) to create ring effect
-    p.draw.circle(ring_surface, p.Color(0, 0, 0, 0), (SQ_SIZE // 2, SQ_SIZE // 2), inner_radius)
+    center = (SQ_SIZE // 2, SQ_SIZE // 2)
 
-    # Blit the ring
+    p.draw.circle(ring_surface, ring_color, center, outer_radius)
+    p.draw.circle(ring_surface, p.Color(0, 0, 0, 0), center, inner_radius)
+
     screen.blit(ring_surface, (center_x - SQ_SIZE // 2, center_y - SQ_SIZE // 2))
 
 def draw_castle_indicator(screen, center_x, center_y):
     """Draw a special indicator for castle moves"""
-    castle_color = p.Color(128, 128, 128, 180)
+    castle_color = p.Color(0, 0, 0, 70)
 
-    # Draw a rounded rectangle for castle moves
     castle_width = SQ_SIZE // 3
     castle_height = SQ_SIZE // 6
 
@@ -346,18 +333,14 @@ def highlight_check_square(screen, king_pos):
     """Highlight the king's square when in check"""
     if king_pos:
         r, c = king_pos
-        # Red highlight for check
-        check_color = p.Color(255, 0, 0, 120)  # Semi-transparent red
+        check_color = p.Color(255, 0, 0, 120)
 
         s = p.Surface((SQ_SIZE, SQ_SIZE), p.SRCALPHA)
         s.fill(check_color)
         screen.blit(s, (c * SQ_SIZE, r * SQ_SIZE))
 
-        # Add a red border
         border_rect = p.Rect(c * SQ_SIZE, r * SQ_SIZE, SQ_SIZE, SQ_SIZE)
         p.draw.rect(screen, p.Color(220, 20, 20), border_rect, 3)
-
-
 
 def draw_pieces(screen, board):
     """Draw the chess pieces on the board"""
@@ -374,7 +357,7 @@ def animate_move(move, screen, board, clock):
     dC = move.endCol - move.startCol
 
     distance = max(abs(dR), abs(dC))
-    frames_per_square = 6
+    frames_per_square = 3
     frame_count = distance * frames_per_square
 
 
@@ -385,7 +368,7 @@ def animate_move(move, screen, board, clock):
                 move.startCol + dC * frame / frame_count)
         draw_board(screen)
         draw_pieces(screen, board)
-        color = p.Color("white") if (move.endRow + move.endCol) % 2 == 0 else p.Color("gray")
+        color = colors[0] if (move.endRow + move.endCol) % 2 == 0 else colors[1]
         end_square = p.Rect(move.endCol * SQ_SIZE, move.endRow * SQ_SIZE, SQ_SIZE, SQ_SIZE)
         p.draw.rect(screen, color, end_square)
 
