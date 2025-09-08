@@ -11,7 +11,7 @@ class GameState:
     def __init__(self):
         self.board= [
             ["bR","bN","bB","bQ","bK","bB","bN","bR"],   # 8th rank (black back row)
-            ["bp","bp","bp","bp","bp","bp","bp","bp"],   # 7th rank (black pawns)
+            ["bp","bp","bp","bp","bp","bp","wp","bp"],   # 7th rank (black pawns)
             ["--","--","--","--","--","--","--","--"],   # 6th rank
             ["--","--","--","--","--","--","--","--"],   # 5th rank
             ["--","--","--","--","--","--","--","--"],   # 4th rank

@@ -27,7 +27,7 @@ def draw_pieces(screen, board):
 
 
 def drawEndGameText(screen, text):
-    overlay = p.Surface((WIDTH, HEIGHT))
+    overlay = p.Surface((WIDTH, HEIGHT), p.SRCALPHA)
     overlay.set_alpha(180)
     overlay.fill(p.Color("Black"))
     screen.blit(overlay, (0, 0))

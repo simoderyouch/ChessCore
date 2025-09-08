@@ -10,4 +10,7 @@ def load_images():
               "bp", "bR", "bN", "bB", "bQ", "bK"]
     for piece in pieces:
         path = os.path.join(ASSETS_DIR, piece.lower() + ".png")
-        IMAGES[piece] = p.transform.scale(p.image.load(path), (SQ_SIZE, SQ_SIZE))
+        # Load image with smooth scaling for better quality
+        original_image = p.image.load(path)
+        # Use smoothscale for better interpolation
+        IMAGES[piece] = p.transform.smoothscale(original_image, (SQ_SIZE, SQ_SIZE))

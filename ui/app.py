@@ -10,7 +10,9 @@ from .dialogs import show_promotion_dialog
 
 def main():
     p.init()
-    screen = p.display.set_mode((WIDTH, HEIGHT))
+    # Enable anti-aliasing for better graphics quality
+    p.display.set_mode((WIDTH, HEIGHT), p.DOUBLEBUF | p.HWSURFACE)
+    screen = p.display.get_surface()
     clock = p.time.Clock()
     screen.fill(p.Color("white"))
     p.display.set_caption('Chess')

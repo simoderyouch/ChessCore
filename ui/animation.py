@@ -8,13 +8,17 @@ def animate_move(move, screen, board, clock):
     dR = move.endRow - move.startRow
     dC = move.endCol - move.startCol
     distance = max(abs(dR), abs(dC))
-    frames_per_square = 3
+    frames_per_square = 4  # Increased for smoother animation
     frame_count = distance * frames_per_square
     if frame_count == 0:
         frame_count = 1
+    
+    # Use floating point interpolation for smoother movement
     for frame in range(frame_count + 1):
-        r, c = (move.startRow + dR * frame / frame_count,
-                move.startCol + dC * frame / frame_count)
+        progress = frame / frame_count
+        r = move.startRow + dR * progress
+        c = move.startCol + dC * progress
+        
         draw_board(screen)
         draw_pieces(screen, board)
         color = colors[0] if (move.endRow + move.endCol) % 2 == 0 else colors[1]

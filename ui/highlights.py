@@ -28,8 +28,8 @@ def highlight_squares(screen, gs, valid_moves_from_selected, sq_selected, last_m
 
 
 def highlight_last_move(screen, last_move):
-    color = p.Color(255, 255, 100, 250)
-    s = p.Surface((SQ_SIZE, SQ_SIZE))
+    color = p.Color(255, 255, 100)
+    s = p.Surface((SQ_SIZE, SQ_SIZE), p.SRCALPHA)
     s.set_alpha(80)
     s.fill(color)
     screen.blit(s, (last_move.startCol * SQ_SIZE, last_move.startRow * SQ_SIZE))
@@ -37,11 +37,11 @@ def highlight_last_move(screen, last_move):
 
 
 def highlight_selected_square(screen, r, c):
-    border_color = p.Color(247, 247, 105, 120)
+    border_color = p.Color(247, 247, 105)
     border_width = 2
     rect = p.Rect(c * SQ_SIZE, r * SQ_SIZE, SQ_SIZE, SQ_SIZE)
     p.draw.rect(screen, border_color, rect, border_width)
-    s = p.Surface((SQ_SIZE, SQ_SIZE))
+    s = p.Surface((SQ_SIZE, SQ_SIZE), p.SRCALPHA)
     s.set_alpha(100)
     s.fill(p.Color('yellow'))
     screen.blit(s, (c * SQ_SIZE, r * SQ_SIZE))
@@ -63,18 +63,20 @@ def highlight_valid_moves(screen, gs, valid_moves):
 
 
 def draw_move_dot(screen, center_x, center_y):
-    dot_color = p.Color(0, 0, 0, 70)
+    dot_color = p.Color(0, 0, 0)
     dot_radius = SQ_SIZE // 5
     dot_surface = p.Surface((dot_radius * 2, dot_radius * 2), p.SRCALPHA)
+    dot_surface.set_alpha(70)
     p.draw.circle(dot_surface, dot_color, (dot_radius, dot_radius), dot_radius)
     screen.blit(dot_surface, (center_x - dot_radius, center_y - dot_radius))
 
 
 def draw_capture_ring(screen, center_x, center_y):
-    ring_color = p.Color(0, 0, 0, 70)
+    ring_color = p.Color(0, 0, 0)
     outer_radius = SQ_SIZE // 2 - 3
     inner_radius = SQ_SIZE // 2 - 8
     ring_surface = p.Surface((SQ_SIZE, SQ_SIZE), p.SRCALPHA)
+    ring_surface.set_alpha(70)
     center = (SQ_SIZE // 2, SQ_SIZE // 2)
     p.draw.circle(ring_surface, ring_color, center, outer_radius)
     p.draw.circle(ring_surface, p.Color(0, 0, 0, 0), center, inner_radius)
@@ -82,10 +84,11 @@ def draw_capture_ring(screen, center_x, center_y):
 
 
 def draw_castle_indicator(screen, center_x, center_y):
-    castle_color = p.Color(0, 0, 0, 70)
+    castle_color = p.Color(0, 0, 0)
     castle_width = SQ_SIZE // 3
     castle_height = SQ_SIZE // 6
     castle_surface = p.Surface((castle_width, castle_height), p.SRCALPHA)
+    castle_surface.set_alpha(70)
     castle_rect = p.Rect(0, 0, castle_width, castle_height)
     p.draw.rect(castle_surface, castle_color, castle_rect, border_radius=castle_height // 4)
     screen.blit(castle_surface, (center_x - castle_width // 2, center_y - castle_height // 2))
@@ -94,8 +97,9 @@ def draw_castle_indicator(screen, center_x, center_y):
 def highlight_check_square(screen, king_pos):
     if king_pos:
         r, c = king_pos
-        check_color = p.Color(255, 0, 0, 120)
+        check_color = p.Color(255, 0, 0)
         s = p.Surface((SQ_SIZE, SQ_SIZE), p.SRCALPHA)
+        s.set_alpha(120)
         s.fill(check_color)
         screen.blit(s, (c * SQ_SIZE, r * SQ_SIZE))
         border_rect = p.Rect(c * SQ_SIZE, r * SQ_SIZE, SQ_SIZE, SQ_SIZE)
