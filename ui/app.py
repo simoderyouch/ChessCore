@@ -89,7 +89,7 @@ def main():
 
                             print('----------------------------------------------------------')
                             move_made = True
-                            animate = False
+                            animate = True
                             sq_selected = ()
                             player_clicks = []
                             valid_moves_from_selected = []
