@@ -1,6 +1,6 @@
 import pygame as p
 
-from .. import ChessEngine
+from .. import ChessEngine , SmartMoveFinder
 from .constants import WIDTH, HEIGHT, SQ_SIZE, MAX_FPS
 from .assets import load_images
 from .draw import draw_game_state, drawEndGameText
@@ -27,15 +27,36 @@ def main():
     running = True
     sq_selected = ()
     player_clicks = []
+
+
+
+
+
     valid_moves_from_selected = []
     last_move = None
 
+    playerOne = True 
+    playerTwo = False  
+
+
+
     while running:
+
+
+        human_turn = (gs.whiteToMove and playerOne) or (not gs.whiteToMove and playerTwo)
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
 
             elif e.type == p.MOUSEBUTTONDOWN:
+
+                if gs.checkMate or gs.staleMate:
+                    continue
+                if not human_turn:
+                    continue
+
+
+
                 location = p.mouse.get_pos()
                 col = location[0] // SQ_SIZE
                 row = location[1] // SQ_SIZE
@@ -138,6 +159,25 @@ def main():
                     last_move = None
                     valid_moves_from_selected = []
 
+        
+        # AI move finder logic
+        if not human_turn and not ( gs.checkMate or gs.staleMate):
+            ai_move = SmartMoveFinder.findBestMove(gs, valid_moves)
+            if ai_move is None:
+                ai_move = SmartMoveFinder.findRandomMove(valid_moves)
+
+            gs.make_move(ai_move)
+            print('AI MOVE:', ai_move.get_chess_move_notation())
+            print('CHESS NOTATION:', ai_move.get_chess_notation())
+            print('----------------------------------------------------------')
+            move_made = True
+            animate = True
+            last_move = ai_move
+            sq_selected = ()
+            player_clicks = []
+            valid_moves_from_selected = []
+            
+
         if move_made:
             valid_moves = gs.get_valid_moves()
             print("Legal moves:", " ".join(move.get_chess_move_notation() for move in valid_moves))
@@ -148,6 +188,7 @@ def main():
         draw_game_state(screen, gs, valid_moves_from_selected, sq_selected, last_move)
 
         if gs.checkMate:
+          
             if gs.whiteToMove:
                 drawEndGameText(screen, "Black wins by Checkmate!")
             else:

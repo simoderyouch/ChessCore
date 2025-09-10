@@ -8,7 +8,7 @@ def animate_move(move, screen, board, clock):
     dR = move.endRow - move.startRow
     dC = move.endCol - move.startCol
     distance = max(abs(dR), abs(dC))
-    frames_per_square = 4  # Increased for smoother animation
+    frames_per_square = 10  # Increased for smoother animation
     frame_count = distance * frames_per_square
     if frame_count == 0:
         frame_count = 1
