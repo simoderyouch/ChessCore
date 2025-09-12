@@ -12,7 +12,7 @@ class Move:
         self.startCol = startsq[1]
         self.endRow = endsq[0]
         self.endCol = endsq[1]
-        self.pieceMoved = board[self.startRow][self.startCol]
+        self.pieceMoved = board[self.startRow][self.startCol] 
         self.pieceCaptured = board[self.endRow][self.endCol]
 
         # Pawn promotion logic
@@ -39,6 +39,7 @@ class Move:
         if isinstance(other, Move):
             return self.moveID == other.moveID
         return False
+    
 
     def get_chess_move_notation(self):
         """Get move in algebraic notation (e.g., e2e4)"""

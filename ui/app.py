@@ -1,6 +1,6 @@
 import pygame as p
 
-from .. import ChessEngine , SmartMoveFinder
+from .. import ChessEngine , MinMaxMoveFinder
 from .constants import WIDTH, HEIGHT, SQ_SIZE, MAX_FPS
 from .assets import load_images
 from .draw import draw_game_state, drawEndGameText
@@ -160,23 +160,20 @@ def main():
                     valid_moves_from_selected = []
 
         
-        # AI move finder logic
-        if not human_turn and not ( gs.checkMate or gs.staleMate):
-            ai_move = SmartMoveFinder.findBestMove(gs, valid_moves)
-            if ai_move is None:
-                ai_move = SmartMoveFinder.findRandomMove(valid_moves)
-
-            gs.make_move(ai_move)
-            print('AI MOVE:', ai_move.get_chess_move_notation())
-            print('CHESS NOTATION:', ai_move.get_chess_notation())
-            print('----------------------------------------------------------')
-            move_made = True
-            animate = True
-            last_move = ai_move
-            sq_selected = ()
-            player_clicks = []
-            valid_moves_from_selected = []
+        if not human_turn and not (gs.checkMate or gs.staleMate) and not move_made:
             
+            ai_move = MinMaxMoveFinder.find_best_move(gs)
+            if ai_move is not None:
+                gs.make_move(ai_move)
+                print('AI MOVE:', ai_move.get_chess_move_notation())
+                print('CHESS NOTATION:', ai_move.get_chess_notation())
+                print('----------------------------------------------------------')
+                move_made = True
+                animate = True
+                last_move = ai_move
+                sq_selected = ()
+                player_clicks = []
+                valid_moves_from_selected = []
 
         if move_made:
             valid_moves = gs.get_valid_moves()

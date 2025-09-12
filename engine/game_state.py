@@ -107,8 +107,21 @@ class GameState:
         """Undo the last move made"""
         if len(self.moveLog) > 0:
             move = self.moveLog.pop()
+            # Restore moved piece to its original square
             self.board[move.startRow][move.startCol] = move.pieceMoved
+
+            # Restore destination square to what was captured (or empty)
             self.board[move.endRow][move.endCol] = move.pieceCaptured
+
+            # Special handling for en passant: captured pawn is not on destination square
+            if move.isEnpassantMove:
+                # Clear the destination square (it was empty before the move)
+                self.board[move.endRow][move.endCol] = '--'
+                # Restore the pawn on the square it actually occupied
+                if move.pieceMoved[0] == 'w':
+                    self.board[move.startRow][move.endCol] = 'bp'
+                else:
+                    self.board[move.startRow][move.endCol] = 'wp'
             self.whiteToMove = not self.whiteToMove
 
             # Update king positions
@@ -117,12 +130,7 @@ class GameState:
             elif move.pieceMoved == 'bK':
                 self.blackKingLocation = (move.startRow, move.startCol)
 
-            # Undo en passant move
-            if move.isEnpassantMove:
-                if move.pieceMoved[0] == 'w':
-                    self.board[move.startRow][move.endCol] = 'bp'
-                else:
-                    self.board[move.startRow][move.endCol] = 'wp'
+            # (En passant already fully restored above.)
 
             # Undo castle move
             if move.isCastleMove:
